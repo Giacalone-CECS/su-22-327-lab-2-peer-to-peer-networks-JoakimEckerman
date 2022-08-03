@@ -16,15 +16,26 @@ HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 
 ''' creating socket object and then setting up a listening socket for the SERVER side'''
+
 socket.socket() 
 socket.client()
 '''specifying socket type Note: this protocol default is TCP'''
 socket.SOCK_STREAM
-socket.bind()
-'''listening for connections from CLIENTS'''
-socket.listen()
-''' here it accepts the connection'''
-socket.accept()
+socket.AF_INET()
+'''associates socket w a specific network interface and port num'''
+    socket.bind((HOST, PORT))
+    '''listening for connections from CLIENTS'''
+    socket.listen()
+    ''' here it accepts the connection'''
+    conn, addr = socket.accept()
+
+ with conn:
+        print(f"Connected by {addr}")
+        while True:
+            data = conn.recv(1024)
+            if not data:
+                break
+            conn.sendall(data)
 
 
 context = zmq.Context()
