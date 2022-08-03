@@ -12,8 +12,8 @@ socket()
 .close()
 '''
 
-HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+localHost = "127.0.0.1"  # Standard loopback interface address (localhost)
+port = 1234  # Port to listen on (non-privileged ports are > 1023)
 
 ''' creating socket object and then setting up a listening socket for the SERVER side'''
 
@@ -23,7 +23,7 @@ socket.client()
 socket.SOCK_STREAM
 socket.AF_INET()
 '''associates socket w a specific network interface and port num'''
-    socket.bind((HOST, PORT))
+    socket.bind((localHost, port))
     '''listening for connections from CLIENTS'''
     socket.listen()
     ''' here it accepts the connection'''
