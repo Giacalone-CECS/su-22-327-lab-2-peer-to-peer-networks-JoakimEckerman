@@ -38,6 +38,8 @@ socket.AF_INET()
             conn.sendall(data)
 
 
+'''to search for unknown nodes >> one way would be to loop thoruhg eah addresses to find active machines'''
+
 context = zmq.Context()
 me = str(sys.argv[1])
 s = context.socket(zmq.PUSH) # create a push socket
