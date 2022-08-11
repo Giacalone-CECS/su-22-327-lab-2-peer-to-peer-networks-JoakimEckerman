@@ -2,15 +2,12 @@ import sys, os, traceback, time
 from threading import Thread
 from socket import *
 from tracemalloc import stop
-from signal import signal, SIGPIPE, SIG_DFL  
-signal(SIGPIPE,SIG_DFL)
 
 
 print ("starting...")
 print(gethostbyname(gethostname()))
 
 files = os.listdir("/files")
-print(files)
 requestFiles = []
 listIP = []
 SEPARATOR = "<SEPARATOR>"
@@ -44,11 +41,14 @@ def broadcastListen(stop):
             for file in files:
                 s.sendto(file.encode("utf-8"), (newIP, 1234))
         elif msg not in files:
-            requestFiles.append(msg)
-            print("Requesting " + msg)
-            t1 = Thread(target = requestFile, args = (msg, ))
-            t1.start()
-            t1.join()
+            if msg not in requestFiles:
+                requestFiles.append(msg)
+                print("Requesting " + msg)
+                t1 = Thread(target = requestFile, args = (msg, ))
+                t1.start()
+                t1.join()
+            else:
+                pass
         elif newIP != gethostbyname(gethostname()):
             print("I have the file!")
             t1 = Thread(target = sendFile, args = (msg, newIP, ))
@@ -85,11 +85,18 @@ def requestFile(filename):
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     s.bind(("", 1234))
-    
-    print("sending request")
-    s.sendto(filename.encode("utf-8"), ("255.255.255.255", 1234))
+    s.listen(5)
 
-    s.listen()
+    try:
+        s.sendto(filename.encode("utf-8"), ("255.255.255.255", 1234))
+    except:
+        # recreate the socket and reconnect
+        s = socket(AF_INET, SOCK_STREAM)
+        s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+        s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        s.bind(("", 1234))
+        s.sendto(filename.encode("utf-8"), ("255.255.255.255", 1234))
+
 
     print("accept")    
     clientSocket, clientIP = s.accept()
@@ -117,16 +124,13 @@ def requestFile(filename):
         
 
 stop = False
-time.sleep(5)
+time.sleep(4)
 Thread(target = broadcastListen, args = (lambda: stop,)).start()
 time.sleep(1)
 Thread(target = broadcastRequest).start()
 time.sleep(1)
 Thread(target = broadcastListen, args = (lambda: stop,)).start()
+time.sleep(1)
+Thread(target = broadcastListen, args = (lambda: stop,)).start()
 #print(listIP)
-
 stop = True
-print("Exiting...")
-
-#Thread(target = recieveFile).start()
-#Thread(target = sendFile).start()
