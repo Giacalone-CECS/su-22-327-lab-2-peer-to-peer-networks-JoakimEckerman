@@ -5,22 +5,28 @@ from tracemalloc import stop
 
 
 print ("starting...")
+#grabbing ip
 print(gethostbyname(gethostname()))
-
 files = os.listdir("/files")
+#these will be the files we need
 requestFiles = []
+#list of our ips
 listIP = []
 SEPARATOR = "<SEPARATOR>"
 BUFFER_SIZE = 4096
 #listIP.append(gethostbyname(gethostname()))
 
+#
 def broadcastRequest():
+    #creating socket to request
     s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+    #socket parameters
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.sendto(b"List all files.", ("255.255.255.255", 1234))
     s.close()
 
 def broadcastListen(stop):
+    #creating our socket to listen for a connection
     s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -28,7 +34,7 @@ def broadcastListen(stop):
     while True:
         msg, senderIP = s.recvfrom(1234)
         newIP = str(senderIP[0])
-
+        #if this is a newIp not in our list, then add it to the list
         if newIP not in listIP and newIP != gethostbyname(gethostname()):
             listIP.append(newIP)
 
@@ -57,8 +63,9 @@ def broadcastListen(stop):
 
     time.sleep(1)         
     s.close()
-
+#sending a file
 def sendFile(filename, node):
+    #creating our socket
     s = socket(AF_INET, SOCK_STREAM)
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -80,11 +87,13 @@ def sendFile(filename, node):
     time.sleep(1)
     s.close()
 
+#requesting files we need
 def requestFile(filename):
     s = socket(AF_INET, SOCK_STREAM)
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     s.bind(("", 1234))
+    #listen for 5 secs
     s.listen(5)
 
     try:
@@ -122,7 +131,7 @@ def requestFile(filename):
     s.close()
 
         
-
+#runnning multiple thread, sleep to give some time to process, and kill
 stop = False
 time.sleep(4)
 Thread(target = broadcastListen, args = (lambda: stop,)).start()
